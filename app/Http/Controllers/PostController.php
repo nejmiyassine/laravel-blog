@@ -2,42 +2,48 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Post;
+use App\Models\User;
 use Illuminate\Http\Request;
 
 class PostController extends Controller
 {
     public function index()
     {
-        $allPosts = [
-            ['id' => 1, 'title' => 'JavaScript', 'posted_by' => 'Ahmed', 'created_at' => '2024-01-01 10:00:00'],
-            ['id' => 2, 'title' => 'React', 'posted_by' => 'Mouhsine', 'created_at' => '2023-11-11 20:00:00'],
-            ['id' => 3, 'title' => 'PHP', 'posted_by' => 'Youness', 'created_at' => '2023-11-08 14:00:00'],
-            ['id' => 4, 'title' => 'Laravel', 'posted_by' => 'Yassine', 'created_at' => '2023-10-10 22:00:00'],
-        ];
-        return view('posts.index', ['posts' => $allPosts]);
+        $posts = Post::all();
+
+        return view('posts.index', ['posts' => $posts]);
     }
 
     public function create()
     {
-        return view('posts.create');
+        $users = User::all();
+        return view('posts.create', ['users' => $users]);
     }
 
     public function store()
     {
-        $data = request()->all();
-        return $data;
+        $title = request()->title;
+        $description = request()->description;
+
+        Post::create([
+            'title' => $title,
+            'description' => $description,
+        ]);
+
         return redirect()->route('posts.index');
     }
 
-    public function show($postId)
+    public function show(Post $post)
     {
-        $singlePost = ['id' => 1, 'title' => 'JavaScript', 'description' => 'JavaScript is a very good language.', 'posted_by' => 'Ahmed', 'created_at' => '2024-01-01 10:00:00'];
-        return view('posts.show', ['post' => $singlePost]);
+        return view('posts.show', ['post' => $post]);
     }
 
-    public function edit($postId)
+    public function edit(Post $post)
     {
-        return view('posts.edit', ['postId' => $postId]);
+        $users = User::all();
+
+        return view('posts.edit', ['users' => $users, 'post' => $post]);
     }
 
     public function update($postId)
@@ -46,9 +52,13 @@ class PostController extends Controller
         $description = request()->description;
         $postCreator = request()->post_creator;
 
-        // dd($title, $description, $postCreator);
+        $singlePost = Post::find($postId);
+        $singlePost->update([
+            'title' => $title,
+            'description' => $description
+        ]);
 
-        return redirect()->route('posts.show', 1);
+        return redirect()->route('posts.show', $postId);
     }
 
     public function delete($postId)
